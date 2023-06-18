@@ -91,14 +91,14 @@ def index():
     )
 
 
-@app.route("/by-location", methods=["GET"])
+@app.route("/api/stations", methods=["GET"])
 @cross_origin
-def by_location():
+def stations_by_location():
     try:
-        location = (float(request.args["lat"]), float(request.args["lon"]))
+        location = (float(request.args["latitude"]), float(request.args["longitude"]))
     except KeyError as e:
         print(e)
-        response = jsonify({"error": "Missing lat/lon parameter"})
+        response = jsonify({"error": "Missing latitude/longitude parameter"})
         response.status_code = 400
         return response
 
@@ -106,12 +106,9 @@ def by_location():
     return _make_envelope(data)
 
 
-@app.route("/by-route/<route>", methods=["GET"])
+@app.route("/api/routes/<route>", methods=["GET"])
 @cross_origin
-def by_route(route):
-    if route.islower():
-        return redirect(request.host_url + "by-route/" + route.upper(), code=301)
-
+def stations_by_route(route):
     try:
         data = mta.get_by_route(route)
         return _make_envelope(data)
@@ -119,10 +116,10 @@ def by_route(route):
         abort(404)
 
 
-@app.route("/by-id/<id_string>", methods=["GET"])
+@app.route("/api/stations/<station_id>", methods=["GET"])
 @cross_origin
-def by_index(id_string):
-    ids = id_string.split(",")
+def by_index(station_id):
+    ids = station_id.split(",")
     try:
         data = mta.get_by_id(ids)
         return _make_envelope(data)
@@ -130,7 +127,7 @@ def by_index(id_string):
         abort(404)
 
 
-@app.route("/routes", methods=["GET"])
+@app.route("/api/routes", methods=["GET"])
 @cross_origin
 def routes():
     return jsonify({"data": sorted(mta.get_routes()), "updated": mta.last_update()})
