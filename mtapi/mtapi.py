@@ -200,9 +200,16 @@ class Mtapi(object):
         sorted_stations = sorted(
             sortable_stations, key=lambda s: distance(s["location"], point)
         )
-        serialized_stations = map(lambda s: s.serialize(), sorted_stations)
+        serialized = map(lambda s: s.serialize(), sorted_stations)
 
-        return list(islice(serialized_stations, limit))
+        return list(islice(serialized, limit))
+
+    def get_stations(self, query = "", limit=10):
+        stations = self._stations.values()
+        serialized = map(lambda s: s.serialize(), stations)
+        filtered = [s for s in serialized if query.lower() in s['name'].lower()]
+
+        return list(islice(filtered, limit))
 
     def get_routes(self):
         return self._routes.keys()

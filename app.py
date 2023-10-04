@@ -93,17 +93,29 @@ def index():
 
 @app.route("/api/stations", methods=["GET"])
 @cross_origin
-def stations_by_location():
+def stations_by_filter():
     try:
-        location = (float(request.args["latitude"]), float(request.args["longitude"]))
-    except KeyError as e:
+        query = request.args.get("query")
+        latitude = request.args.get("latitude")
+        longitude = request.args.get("longitude")
+        limit = int(request.args.get("limit", 10))
+
+        if query:
+            data = mta.get_stations(query, limit)
+        elif latitude and longitude:
+            location = (float(latitude), float(longitude))
+            data = mta.get_by_point(location, limit)
+        else:
+            data = mta.get_stations(limit=limit)
+            # raise ValueError("Missing query or latitude/longitude parameters")
+
+        return _make_envelope(data)
+
+    except Exception as e:
         print(e)
-        response = jsonify({"error": "Missing latitude/longitude parameter"})
+        response = jsonify({"error": str(e)})
         response.status_code = 400
         return response
-
-    data = mta.get_by_point(location, 5)
-    return _make_envelope(data)
 
 
 @app.route("/api/routes/<route>", methods=["GET"])
